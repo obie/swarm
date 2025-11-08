@@ -117,11 +117,17 @@ module SwarmSDK
       end
 
       def execute(todos_json:)
-        # Parse JSON
-        todos = begin
-          JSON.parse(todos_json)
-        rescue JSON::ParserError
-          nil
+        # Handle both JSON string and direct Array (some models send arrays directly)
+        todos = case todos_json
+        when String
+          begin
+            JSON.parse(todos_json)
+          rescue JSON::ParserError
+            nil
+          end
+        when Array
+          # Model sent array directly, use it as-is
+          todos_json
         end
 
         return validation_error("Invalid JSON format. Please provide a valid JSON array of todo objects.") if todos.nil?

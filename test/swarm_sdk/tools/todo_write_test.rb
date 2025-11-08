@@ -172,6 +172,21 @@ module SwarmSDK
         assert_includes(result, "Error")
         assert_includes(result, "todos must be an array")
       end
+
+      def test_todo_write_accepts_array_directly
+        tool = TodoWrite.new(agent_name: :test_agent)
+
+        # Some models send arrays directly instead of JSON strings
+        todos_array = [{ "content" => "Task 1", "status" => "in_progress", "activeForm" => "Doing task 1" }]
+        result = tool.execute(todos_json: todos_array)
+
+        assert_includes(result, "Your todo list has changed")
+        assert_includes(result, "Task 1 (in_progress)")
+
+        stored_todos = Stores::TodoManager.get_todos(:test_agent)
+        assert_equal(1, stored_todos.size)
+        assert_equal("Task 1", stored_todos[0][:content])
+      end
     end
   end
 end
